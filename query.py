@@ -30,6 +30,7 @@ parser.add_argument("--brand", type=str, default="all", help="Brand name")
 parser.add_argument("--limit", type=int, default=10, help="Return at most this many results")
 
 parser.add_argument("--since", type=str, default="7d", help="Show phishing pages detected in the last minutes (m), hours (h), days (d), weeks (w), months (M)")
+parser.add_argument("--query", type=str, default="", help="Query string")
 args = parser.parse_args()
 
 session.headers.update({'api-key': args.apikey})
@@ -37,6 +38,8 @@ session.headers.update({'api-key': args.apikey})
 query = "*"
 if args.since:
     query = "date%%3A>now-%s" % args.since
+if args.query:
+    query = "%s AND (%s)" % (query, args.query)
 
 if args.action == "showbrands":
     r = session.get("https://pro.urlscan.com/api/v1/pro/kits")
@@ -66,7 +69,7 @@ elif args.action == "showlatest":
         print("="*80)
         print("Submitted URL: %s" % _.get(res, "task.url"))
         print("Actual URL: %s" % _.get(res, "page.url"))
-        print("Submitted: %s via %s" % (_.get(res, "task.time"), _.get(res, "task.method")))
+        print("Submitted: %s via %s (Source: %s)" % (_.get(res, "task.time"), _.get(res, "task.method"), _.get(res, "task.source")))
         print("Page IP: %s - %s (%s)" % (_.get(res, "page.ip"), _.get(res, "page.asn"), _.get(res, "page.asnname")))
         print("Scan: https://urlscan.io/result/%s/" % res["_id"])
         print("API: https://urlscan.io/api/v1/result/%s/" % res["_id"])
